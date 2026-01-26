@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Album ──────────────────────────────────────────────────
+model Album {
+  id            Int      @id @default(autoincrement())
+  title         String
+  artistName    String   @map("artist_name")
+  releaseYear   Int      @map("release_year")
+  coverUrl      String   @map("cover_url")
+  summary       String?
+  impactScore   Int      @default(50) @map("impact_score")
+  impactTier    String   @default("Notable") @map("impact_tier")
+  linksJson     String   @default("{}") @map("links_json")
+  subgenresJson String   @default("[]") @map("subgenres_json")
+  mbid          String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  genres        AlbumGenre[]
+  savedByUsers  UserSavedAlbum[]
+  roomEntries   UserRoomAlbum[]
+  heroOfGenres  GenreHeroAlbum[]
+  canonOfGenres GenreCanonAlbum[]
+
+  @@map("albums")
+}
+
+// ─── Genre ──────────────────────────────────────────────────
+model Genre {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  slug          String   @unique
+  description   String?
+  parentGenreId Int?     @map("parent_genre_id")
+  colorHex      String?  @default("#6366f1") @map("color_hex")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  parentGenre  Genre?  @relation("GenreHierarchy", fields: [parentGenreId], references: [id])
+  childGenres  Genre[] @relation("GenreHierarchy")
+
+  adjacentTo   GenreAdjacency[] @relation("GenreAdjacentFrom")
+  adjacentFrom GenreAdjacency[] @relation("GenreAdjacentTo")
+
+  albums       AlbumGenre[]
+  heroAlbums   GenreHeroAlbum[]
+  canonAlbums  GenreCanonAlbum[]
+
+  @@map("genres")
+}
+
+// ─── Junction: Album <-> Genre ──────────────────────────────
+model AlbumGenre {
+  albumId Int @map("album_id")
+  genreId Int @map("genre_id")
+
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([albumId, genreId])
+  @@map("album_genres")
+}
+
+// ─── Genre adjacency (self-referencing M2M) ─────────────────
+model GenreAdjacency {
+  genreId         Int @map("genre_id")
+  adjacentGenreId Int @map("adjacent_genre_id")
+
+  genre         Genre @relation("GenreAdjacentFrom", fields: [genreId], references: [id], onDelete: Cascade)
+  adjacentGenre Genre @relation("GenreAdjacentTo", fields: [adjacentGenreId], references: [id], onDelete: Cascade)
+
+  @@id([genreId, adjacentGenreId])
+  @@map("genre_adjacencies")
+}
+
+// ─── Genre Hero Albums (Start Here - up to 12) ──────────────
+model GenreHeroAlbum {
+  genreId  Int @map("genre_id")
+  albumId  Int @map("album_id")
+  position Int @default(0)
+
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@id([genreId, albumId])
+  @@map("genre_hero_albums")
+}
+
+// ─── Genre Canon Albums (Essential - up to 24) ──────────────
+model GenreCanonAlbum {
+  genreId  Int @map("genre_id")
+  albumId  Int @map("album_id")
+  position Int @default(0)
+
+  genre Genre @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@id([genreId, albumId])
+  @@map("genre_canon_albums")
+}
+
+// ─── Auth: User ─────────────────────────────────────────────
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         String    @default("user")
+  image        String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  savedAlbums UserSavedAlbum[]
+  rooms       UserRoom[]
+
+  @@map("users")
+}
+
+// ─── User Saved Albums ──────────────────────────────────────
+model UserSavedAlbum {
+  userId  String   @map("user_id")
+  albumId Int      @map("album_id")
+  savedAt DateTime @default(now()) @map("saved_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@id([userId, albumId])
+  @@map("user_saved_albums")
+}
+
+// ─── User Room (Collection) ────────────────────────────────
+model UserRoom {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  albums UserRoomAlbum[]
+
+  @@map("user_rooms")
+}
+
+// ─── User Room <-> Album ───────────────────────────────────
+model UserRoomAlbum {
+  roomId   Int @map("room_id")
+  albumId  Int @map("album_id")
+  position Int @default(0)
+
+  room  UserRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  album Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, albumId])
+  @@map("user_room_albums")
+}
