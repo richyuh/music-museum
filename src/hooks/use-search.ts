@@ -19,10 +19,12 @@ export function useSearch(query: string) {
 
   return useQuery({
     queryKey: ["search", debouncedQuery],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const res = await fetch(
-        `/api/search?q=${encodeURIComponent(debouncedQuery)}`
+        `/api/search?q=${encodeURIComponent(debouncedQuery)}&limit=50`,
+        { signal }
       );
+      if (!res.ok) throw new Error(`Search failed: ${res.status}`);
       return res.json();
     },
     enabled: debouncedQuery.length >= 2,

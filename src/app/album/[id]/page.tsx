@@ -26,9 +26,15 @@ export async function generateMetadata({ params }: Props) {
     title: `${album.title} - ${album.artistName} | Music Museum`,
     description: album.summary || `${album.title} by ${album.artistName}`,
     openGraph: {
+      type: "music.album",
       title: `${album.title} - ${album.artistName}`,
       description: album.summary || undefined,
       images: album.coverUrl ? [album.coverUrl] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${album.title} - ${album.artistName}`,
+      description: album.summary || `${album.title} by ${album.artistName}`,
     },
   };
 }

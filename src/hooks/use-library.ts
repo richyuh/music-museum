@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function useSavedAlbums() {
   return useQuery({
@@ -25,8 +26,12 @@ export function useSaveAlbum() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data: unknown, variables: { albumId: number; save: boolean }) => {
+      toast.success(variables.save ? "Album saved" : "Album removed");
       queryClient.invalidateQueries({ queryKey: ["savedAlbums"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Something went wrong");
     },
   });
 }
@@ -67,7 +72,11 @@ export function useCreateRoom() {
       return res.json();
     },
     onSuccess: () => {
+      toast.success("Room created");
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Something went wrong");
     },
   });
 }
@@ -94,6 +103,9 @@ export function useAddAlbumToRoom() {
       queryClient.invalidateQueries({ queryKey: ["room", roomId] });
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
     },
+    onError: (error: Error) => {
+      toast.error(error.message || "Something went wrong");
+    },
   });
 }
 
@@ -116,8 +128,12 @@ export function useRemoveAlbumFromRoom() {
       return res.json();
     },
     onSuccess: (_, { roomId }) => {
+      toast.success("Album removed from room");
       queryClient.invalidateQueries({ queryKey: ["room", roomId] });
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Something went wrong");
     },
   });
 }

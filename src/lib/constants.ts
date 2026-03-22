@@ -20,3 +20,20 @@ export const GENRE_COLORS: Record<string, string> = {
 };
 
 export const ITEMS_PER_PAGE = 60;
+
+export const GENRES = [
+  { slug: "rock", name: "Rock" },
+  { slug: "hip-hop", name: "Hip-Hop" },
+  { slug: "electronic", name: "Electronic" },
+  { slug: "jazz", name: "Jazz" },
+  { slug: "rnb-soul", name: "R&B / Soul" },
+  { slug: "pop", name: "Pop" },
+  { slug: "metal", name: "Metal" },
+  { slug: "folk-country", name: "Folk / Country" },
+] as const;
+
+export const YEAR_RANGE = { min: 1950, max: new Date().getFullYear() } as const;
+
+export const GALLERY_GRID_CLASSES = "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2";
+
+export const GALLERY_GRID_SMALL_CLASSES = "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2";

@@ -16,7 +16,13 @@ export default async function AdminGenresPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Genres ({genres.length})</h1>
 
-      <div className="rounded-lg border">
+      {genres.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No genres yet. Create your first genre.</p>
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">

@@ -6,6 +6,7 @@ import { AlbumCoverCard } from "@/components/gallery/album-cover-card";
 import { useSavedAlbums } from "@/hooks/use-library";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { GALLERY_GRID_SMALL_CLASSES } from "@/lib/constants";
 import { FolderOpen, Heart } from "lucide-react";
 
 export default function LibraryPage() {
@@ -34,13 +35,13 @@ export default function LibraryPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div className={GALLERY_GRID_SMALL_CLASSES}>
             {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-md" />
             ))}
           </div>
         ) : savedAlbums && savedAlbums.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div className={GALLERY_GRID_SMALL_CLASSES}>
             {savedAlbums.map(
               (album: {
                 id: number;

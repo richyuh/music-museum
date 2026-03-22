@@ -9,22 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { IMPACT_TIERS } from "@/lib/constants";
-
-const GENRES = [
-  { slug: "rock", name: "Rock" },
-  { slug: "hip-hop", name: "Hip-Hop" },
-  { slug: "electronic", name: "Electronic" },
-  { slug: "jazz", name: "Jazz" },
-  { slug: "rnb-soul", name: "R&B / Soul" },
-  { slug: "pop", name: "Pop" },
-  { slug: "metal", name: "Metal" },
-  { slug: "folk-country", name: "Folk / Country" },
-];
+import { IMPACT_TIERS, GENRES, YEAR_RANGE } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS = [
   { value: "impact-desc", label: "Impact" },
@@ -46,10 +35,10 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
   const activeSort = searchParams.get("sort") || "impact-desc";
   const yearMin = searchParams.get("yearMin")
     ? parseInt(searchParams.get("yearMin")!)
-    : 1950;
+    : YEAR_RANGE.min;
   const yearMax = searchParams.get("yearMax")
     ? parseInt(searchParams.get("yearMax")!)
-    : 2025;
+    : YEAR_RANGE.max;
 
   const updateParams = useCallback(
     (updates: Record<string, string | undefined>) => {
@@ -67,7 +56,7 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
     [searchParams, router, onFiltersChange]
   );
 
-  const hasFilters = activeGenre || activeTier || yearMin > 1950 || yearMax < 2025;
+  const hasFilters = activeGenre || activeTier || yearMin > YEAR_RANGE.min || yearMax < YEAR_RANGE.max;
 
   return (
     <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b md:px-6">
@@ -76,7 +65,7 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
         value={activeGenre || "all"}
         onValueChange={(v) => updateParams({ genre: v === "all" ? undefined : v })}
       >
-        <SelectTrigger className="w-[140px] h-8 text-xs">
+        <SelectTrigger className="w-[140px] h-8 text-xs" aria-label="Filter by genre">
           <SelectValue placeholder="All Genres" />
         </SelectTrigger>
         <SelectContent>
@@ -89,12 +78,37 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
         </SelectContent>
       </Select>
 
-      {/* Year range */}
+      {/* Mobile year inputs */}
+      <div className="flex items-center gap-2 sm:hidden">
+        <input
+          type="number"
+          min={YEAR_RANGE.min}
+          max={YEAR_RANGE.max}
+          value={yearMin}
+          onChange={(e) => updateParams({ yearMin: e.target.value ? e.target.value : undefined })}
+          className="w-16 h-8 rounded-md border bg-background px-2 text-xs"
+          placeholder="From"
+          aria-label="Year from"
+        />
+        <span className="text-xs text-muted-foreground">–</span>
+        <input
+          type="number"
+          min={YEAR_RANGE.min}
+          max={YEAR_RANGE.max}
+          value={yearMax}
+          onChange={(e) => updateParams({ yearMax: e.target.value ? e.target.value : undefined })}
+          className="w-16 h-8 rounded-md border bg-background px-2 text-xs"
+          placeholder="To"
+          aria-label="Year to"
+        />
+      </div>
+
+      {/* Desktop year range slider */}
       <div className="hidden items-center gap-2 sm:flex">
         <span className="text-xs text-muted-foreground">{yearMin}</span>
         <Slider
-          min={1950}
-          max={2025}
+          min={YEAR_RANGE.min}
+          max={YEAR_RANGE.max}
           step={5}
           value={[yearMin, yearMax]}
           onValueChange={([min, max]) =>
@@ -104,6 +118,7 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
             })
           }
           className="w-[160px]"
+          aria-label="Year range"
         />
         <span className="text-xs text-muted-foreground">{yearMax}</span>
       </div>
@@ -111,16 +126,23 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
       {/* Impact tier toggles */}
       <div className="flex gap-1">
         {IMPACT_TIERS.map((tier) => (
-          <Badge
+          <button
             key={tier}
-            variant={activeTier === tier ? "default" : "outline"}
-            className="cursor-pointer text-[10px] h-6"
+            type="button"
             onClick={() =>
               updateParams({ tier: activeTier === tier ? undefined : tier })
             }
+            className={cn(
+              "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors min-h-[44px] min-w-[44px] justify-center",
+              activeTier === tier
+                ? "border-transparent bg-primary text-primary-foreground"
+                : "border-input bg-background hover:bg-accent"
+            )}
+            aria-pressed={activeTier === tier}
+            aria-label={`Filter by ${tier} tier`}
           >
             {tier}
-          </Badge>
+          </button>
         ))}
       </div>
 
@@ -129,7 +151,7 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
         value={activeSort}
         onValueChange={(v) => updateParams({ sort: v })}
       >
-        <SelectTrigger className="w-[100px] h-8 text-xs ml-auto">
+        <SelectTrigger className="w-[100px] h-8 text-xs ml-auto" aria-label="Sort albums">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

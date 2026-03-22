@@ -6,6 +6,7 @@ import { AlbumCoverCard } from "@/components/gallery/album-cover-card";
 import { useRoomDetail, useRemoveAlbumFromRoom } from "@/hooks/use-library";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { GALLERY_GRID_SMALL_CLASSES } from "@/lib/constants";
 import { Trash2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -34,7 +35,7 @@ export default function RoomDetailPage({ params }: Props) {
           <div>
             <Skeleton className="h-10 w-48 mb-2" />
             <Skeleton className="h-5 w-32 mb-6" />
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            <div className={GALLERY_GRID_SMALL_CLASSES}>
               {Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-square rounded-md" />
               ))}
@@ -53,7 +54,7 @@ export default function RoomDetailPage({ params }: Props) {
             </p>
 
             {room.albums.length > 0 ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+              <div className={GALLERY_GRID_SMALL_CLASSES}>
                 {room.albums.map(
                   ({
                     album,

@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { searchAlbums } from "@/lib/search";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { searchQuerySchema } from "@/lib/validations";
 
-export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q") || "";
-  const limit = Math.min(50, parseInt(req.nextUrl.searchParams.get("limit") || "20"));
+export const GET = withErrorHandler(async (req: NextRequest) => {
+  const rawParams = Object.fromEntries(req.nextUrl.searchParams);
+  const result = searchQuerySchema.safeParse(rawParams);
 
-  if (q.length < 2) {
-    return NextResponse.json([]);
+  if (!result.success) {
+    return apiError("Invalid search parameters", 400, result.error.flatten());
   }
 
+  const { q, limit } = result.data;
   const results = await searchAlbums(q, limit);
-  return NextResponse.json(results);
-}
+  return apiSuccess(results);
+});

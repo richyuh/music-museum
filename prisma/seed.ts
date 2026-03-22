@@ -1,6 +1,7 @@
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { genres, adjacencies } from "./data/genres";
 import { albums, genreHeroAlbums, genreCanonAlbums } from "./data/albums";
 
@@ -28,8 +29,8 @@ async function main() {
   // Drop FTS if exists
   try {
     await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS albums_fts`);
-  } catch {
-    // ignore
+  } catch (e) {
+    console.warn("Warning: Failed to drop FTS table:", e);
   }
 
   // 1. Seed genres
@@ -79,8 +80,8 @@ async function main() {
           data: { genreId, adjacentGenreId: adjacentId },
         });
         adjCount++;
-      } catch {
-        // Duplicate, skip
+      } catch (e) {
+        console.warn(`Warning: Failed to create adjacency ${adj.genreSlug} -> ${adj.adjacentSlug}:`, e);
       }
     }
   }
@@ -141,8 +142,8 @@ async function main() {
         await prisma.genreHeroAlbum.create({
           data: { genreId, albumId, position: pos },
         });
-      } catch {
-        // Skip duplicates
+      } catch (e) {
+        console.warn(`Warning: Failed to create hero album for ${genreSlug}:`, e);
       }
     }
   }
@@ -161,8 +162,8 @@ async function main() {
         await prisma.genreCanonAlbum.create({
           data: { genreId, albumId, position: pos },
         });
-      } catch {
-        // Skip duplicates
+      } catch (e) {
+        console.warn(`Warning: Failed to create canon album for ${genreSlug}:`, e);
       }
     }
   }
@@ -208,7 +209,8 @@ async function main() {
 
   // 7. Create admin user
   console.log("Creating admin user...");
-  const adminPassword = await bcrypt.hash("admin123", 12);
+  const rawPassword = process.env.ADMIN_PASSWORD || crypto.randomUUID();
+  const adminPassword = await bcrypt.hash(rawPassword, 12);
   await prisma.user.create({
     data: {
       email: "admin@musicmuseum.com",
@@ -217,7 +219,11 @@ async function main() {
       role: "admin",
     },
   });
-  console.log("  ✓ Admin user created (admin@musicmuseum.com / admin123)");
+  if (process.env.ADMIN_PASSWORD) {
+    console.log("  ✓ Admin user created (admin@musicmuseum.com / <from ADMIN_PASSWORD env>)");
+  } else {
+    console.log(`  ✓ Admin user created (admin@musicmuseum.com / ${rawPassword})`);
+  }
 
   console.log("\n🎉 Seeding complete!");
   console.log(`   Albums: ${albums.length}`);

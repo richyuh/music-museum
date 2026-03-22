@@ -16,9 +16,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Music Museum",
-  description:
-    "A virtual album art gallery where you explore music as museum exhibits",
+  title: {
+    default: "Music Museum",
+    template: "%s | Music Museum",
+  },
+  description: "A virtual museum of album art — explore genres, discover classics, and curate your collection.",
+  keywords: ["music", "albums", "album art", "genres", "music discovery", "vinyl", "collection"],
+  authors: [{ name: "Music Museum" }],
+  openGraph: {
+    type: "website",
+    siteName: "Music Museum",
+    title: "Music Museum",
+    description: "A virtual museum of album art — explore genres, discover classics, and curate your collection.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Music Museum",
+    description: "A virtual museum of album art — explore genres, discover classics, and curate your collection.",
+  },
 };
 
 export default function RootLayout({

@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { GENRES } from "@/lib/constants";
 
 export function Header() {
   const { data: session } = useSession();
@@ -34,7 +35,7 @@ export function Header() {
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -44,14 +45,11 @@ export function Header() {
                 <Disc3 className="h-5 w-5" />
                 Music Museum
               </Link>
-              <Link href="/genre/rock" className="text-sm text-muted-foreground hover:text-foreground">Rock</Link>
-              <Link href="/genre/hip-hop" className="text-sm text-muted-foreground hover:text-foreground">Hip-Hop</Link>
-              <Link href="/genre/electronic" className="text-sm text-muted-foreground hover:text-foreground">Electronic</Link>
-              <Link href="/genre/jazz" className="text-sm text-muted-foreground hover:text-foreground">Jazz</Link>
-              <Link href="/genre/rnb-soul" className="text-sm text-muted-foreground hover:text-foreground">R&B / Soul</Link>
-              <Link href="/genre/pop" className="text-sm text-muted-foreground hover:text-foreground">Pop</Link>
-              <Link href="/genre/metal" className="text-sm text-muted-foreground hover:text-foreground">Metal</Link>
-              <Link href="/genre/folk-country" className="text-sm text-muted-foreground hover:text-foreground">Folk / Country</Link>
+              {GENRES.map((g) => (
+                <Link key={g.slug} href={`/genre/${g.slug}`} className="text-sm text-muted-foreground hover:text-foreground">
+                  {g.name}
+                </Link>
+              ))}
             </nav>
           </SheetContent>
         </Sheet>
@@ -69,14 +67,11 @@ export function Header() {
               <Button variant="ghost" size="sm">Wings</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => router.push("/genre/rock")}>Rock</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/hip-hop")}>Hip-Hop</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/electronic")}>Electronic</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/jazz")}>Jazz</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/rnb-soul")}>R&B / Soul</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/pop")}>Pop</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/metal")}>Metal</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/genre/folk-country")}>Folk / Country</DropdownMenuItem>
+              {GENRES.map((g) => (
+                <DropdownMenuItem key={g.slug} onClick={() => router.push(`/genre/${g.slug}`)}>
+                  {g.name}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
@@ -99,12 +94,12 @@ export function Header() {
         <div className="flex items-center gap-2">
           {session?.user ? (
             <>
-              <Button variant="ghost" size="icon" onClick={() => router.push("/library")}>
+              <Button variant="ghost" size="icon" onClick={() => router.push("/library")} aria-label="My library">
                 <Library className="h-4 w-4" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" aria-label="User menu">
                     <User className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>

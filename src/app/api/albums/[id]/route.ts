@@ -1,17 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { idParamSchema, albumUpdateSchema } from "@/lib/validations";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const albumId = parseInt(id);
+export const GET = withErrorHandler(async (_req: NextRequest, context) => {
+  const { id } = await context.params;
+  const parsed = idParamSchema.safeParse(parseInt(id));
 
-  if (isNaN(albumId)) {
-    return NextResponse.json({ error: "Invalid album ID" }, { status: 400 });
+  if (!parsed.success) {
+    return apiError("Invalid album ID", 400, parsed.error.flatten());
   }
+
+  const albumId = parsed.data;
 
   const album = await prisma.album.findUnique({
     where: { id: albumId },
@@ -27,54 +28,78 @@ export async function GET(
   });
 
   if (!album) {
-    return NextResponse.json({ error: "Album not found" }, { status: 404 });
+    return apiError("Album not found", 404);
   }
 
-  return NextResponse.json(album);
-}
+  return apiSuccess(album);
+});
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withErrorHandler(async (req: NextRequest, context) => {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return apiError("Forbidden", 403);
   }
 
-  const { id } = await params;
-  const albumId = parseInt(id);
+  const { id } = await context.params;
+  const parsed = idParamSchema.safeParse(parseInt(id));
+
+  if (!parsed.success) {
+    return apiError("Invalid album ID", 400, parsed.error.flatten());
+  }
+
+  const albumId = parsed.data;
+
+  const existing = await prisma.album.findUnique({ where: { id: albumId } });
+  if (!existing) {
+    return apiError("Album not found", 404);
+  }
+
   const body = await req.json();
+  const result = albumUpdateSchema.safeParse(body);
+
+  if (!result.success) {
+    return apiError("Invalid album data", 400, result.error.flatten());
+  }
+
+  const { title, artistName, releaseYear, coverUrl, summary, impactTier, impactScore, linksJson } = result.data;
 
   const album = await prisma.album.update({
     where: { id: albumId },
     data: {
-      title: body.title,
-      artistName: body.artistName,
-      releaseYear: parseInt(body.releaseYear),
-      coverUrl: body.coverUrl || "",
-      summary: body.summary || null,
-      impactTier: body.impactTier || "Notable",
-      impactScore: parseInt(body.impactScore) || 50,
-      linksJson: body.linksJson || "{}",
+      ...(title !== undefined && { title }),
+      ...(artistName !== undefined && { artistName }),
+      ...(releaseYear !== undefined && { releaseYear }),
+      ...(coverUrl !== undefined && { coverUrl }),
+      ...(summary !== undefined && { summary: summary || null }),
+      ...(impactTier !== undefined && { impactTier }),
+      ...(impactScore !== undefined && { impactScore }),
+      ...(linksJson !== undefined && { linksJson }),
     },
   });
 
-  return NextResponse.json(album);
-}
+  return apiSuccess(album);
+});
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withErrorHandler(async (_req: NextRequest, context) => {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return apiError("Forbidden", 403);
   }
 
-  const { id } = await params;
-  const albumId = parseInt(id);
+  const { id } = await context.params;
+  const parsed = idParamSchema.safeParse(parseInt(id));
+
+  if (!parsed.success) {
+    return apiError("Invalid album ID", 400, parsed.error.flatten());
+  }
+
+  const albumId = parsed.data;
+
+  const existing = await prisma.album.findUnique({ where: { id: albumId } });
+  if (!existing) {
+    return apiError("Album not found", 404);
+  }
 
   await prisma.album.delete({ where: { id: albumId } });
-  return NextResponse.json({ deleted: true });
-}
+  return apiSuccess({ deleted: true });
+});

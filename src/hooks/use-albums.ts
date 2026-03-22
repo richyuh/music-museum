@@ -25,6 +25,9 @@ export function useAlbums(filters: AlbumFilters = {}) {
       if (filters.sort) params.set("sort", filters.sort);
 
       const res = await fetch(`/api/albums?${params}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch albums: ${res.status}`);
+      }
       return res.json();
     },
     getNextPageParam: (lastPage) =>
