@@ -13,6 +13,16 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🎵 Seeding Music Museum database...\n");
 
+  // Drop FTS triggers and table first (before cleaning data, since triggers reference FTS table)
+  try {
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_ai`);
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_ad`);
+    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_au`);
+    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS albums_fts`);
+  } catch (e) {
+    console.warn("Warning: Failed to drop FTS table/triggers:", e);
+  }
+
   // Clean existing data
   console.log("Cleaning existing data...");
   await prisma.userRoomAlbum.deleteMany();
@@ -25,13 +35,6 @@ async function main() {
   await prisma.album.deleteMany();
   await prisma.genre.deleteMany();
   await prisma.user.deleteMany();
-
-  // Drop FTS if exists
-  try {
-    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS albums_fts`);
-  } catch (e) {
-    console.warn("Warning: Failed to drop FTS table:", e);
-  }
 
   // 1. Seed genres
   console.log("Seeding genres...");
@@ -114,6 +117,7 @@ async function main() {
         impactTier: a.impactTier,
         linksJson: JSON.stringify(a.links),
         subgenresJson: JSON.stringify(a.subgenres),
+        mbid: a.mbid || null,
         genres: {
           create: genreIds.map((genreId) => ({
             genre: { connect: { id: genreId } },
