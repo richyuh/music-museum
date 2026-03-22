@@ -120,11 +120,9 @@ const TAG_TO_SLUG: Record<string, string> = {
   // Pop
   pop: "pop",
   "synth pop": "synth-pop",
-  "synthpop": "synth-pop",
   "art pop": "art-pop",
   "chamber pop": "art-pop",
   "baroque pop": "art-pop",
-  "dream pop": "shoegaze",
   "indie pop": "indie-pop",
   "power pop": "pop",
   "dance pop": "pop",
@@ -165,10 +163,8 @@ const TAG_TO_SLUG: Record<string, string> = {
   "alternative country": "alt-country",
   "americana": "americana",
   bluegrass: "folk-country",
-  "folk rock": "folk-country",
   "contemporary folk": "folk-country",
   "traditional folk": "folk-country",
-  "singer-songwriter": "folk-country",
   "outlaw country": "country",
   "country rock": "country",
   blues: "folk-country",
@@ -178,7 +174,6 @@ const TAG_TO_SLUG: Record<string, string> = {
   "world music": "folk-country",
   "celtic": "folk-country",
   "roots": "folk-country",
-  "roots rock": "folk-country",
 };
 
 export function mapTags(tags: string[], fallbackGenres: string[]): string[] {
