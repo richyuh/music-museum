@@ -108,7 +108,7 @@ export default function RoomsPage() {
                   <div className="rounded-lg border overflow-hidden transition-colors hover:bg-accent cursor-pointer">
                     {/* Thumbnail grid */}
                     <div className="grid grid-cols-2 aspect-video">
-                      {room.albums.slice(0, 4).map(({ album }, idx) => (
+                      {room.albums.slice(0, 4).map(({ album }) => (
                         <div
                           key={album.id}
                           className="relative aspect-square"

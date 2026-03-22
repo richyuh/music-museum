@@ -1,31 +1,21 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { apiError, apiSuccess } from "@/lib/api-utils";
+import { signupSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+    const body = await req.json();
+    const result = signupSchema.safeParse(body);
+    if (!result.success) {
+      return apiError("Invalid input", 400, result.error.flatten());
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      );
-    }
+    const { email, password, name } = result.data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 409 }
-      );
+      return apiError("An account with this email already exists", 409);
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -38,14 +28,11 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
+    return apiSuccess(
       { id: user.id, email: user.email, name: user.name },
-      { status: 201 }
+      201
     );
   } catch {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return apiError("Internal server error", 500);
   }
 }

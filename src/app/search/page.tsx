@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { AlbumCoverCard } from "@/components/gallery/album-cover-card";
 import { useSearch } from "@/hooks/use-search";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GALLERY_GRID_SMALL_CLASSES } from "@/lib/constants";
 
 function SearchResults() {
   const searchParams = useSearchParams();
@@ -24,13 +25,13 @@ function SearchResults() {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+        <div className={GALLERY_GRID_SMALL_CLASSES}>
           {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="aspect-square rounded-md" />
           ))}
         </div>
       ) : results && results.length > 0 ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+        <div className={GALLERY_GRID_SMALL_CLASSES}>
           {results.map(
             (album: {
               id: number;
@@ -73,7 +74,7 @@ export default function SearchPage() {
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
         <Suspense
           fallback={
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            <div className={GALLERY_GRID_SMALL_CLASSES}>
               {Array.from({ length: 12 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-square rounded-md" />
               ))}

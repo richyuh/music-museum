@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { roomCreateSchema } from "@/lib/validations";
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
   const rooms = await prisma.userRoom.findMany({
@@ -25,19 +26,22 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
 
-  return NextResponse.json(rooms);
-}
+  return apiSuccess(rooms);
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
-  const { name, description } = await req.json();
-  if (!name) {
-    return NextResponse.json({ error: "Name required" }, { status: 400 });
+  const body = await req.json();
+  const result = roomCreateSchema.safeParse(body);
+  if (!result.success) {
+    return apiError("Invalid input", 400, result.error.flatten());
   }
+
+  const { name, description } = result.data;
 
   const room = await prisma.userRoom.create({
     data: {
@@ -47,5 +51,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(room, { status: 201 });
-}
+  return apiSuccess(room, 201);
+});

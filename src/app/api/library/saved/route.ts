@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { albumIdBodySchema } from "@/lib/validations";
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
   const saved = await prisma.userSavedAlbum.findMany({
@@ -24,54 +25,66 @@ export async function GET() {
     orderBy: { savedAt: "desc" },
   });
 
-  return NextResponse.json(saved.map((s) => s.album));
-}
+  return apiSuccess(saved.map((s) => s.album));
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
-  const { albumId } = await req.json();
-  if (!albumId) {
-    return NextResponse.json({ error: "albumId required" }, { status: 400 });
+  const body = await req.json();
+  const result = albumIdBodySchema.safeParse(body);
+  if (!result.success) {
+    return apiError("Invalid input", 400, result.error.flatten());
+  }
+
+  const { albumId } = result.data;
+
+  // Verify album exists
+  const album = await prisma.album.findUnique({ where: { id: albumId } });
+  if (!album) {
+    return apiError("Album not found", 404);
   }
 
   await prisma.userSavedAlbum.upsert({
     where: {
       userId_albumId: {
         userId: session.user.id,
-        albumId: parseInt(albumId),
+        albumId,
       },
     },
     create: {
       userId: session.user.id,
-      albumId: parseInt(albumId),
+      albumId,
     },
     update: {},
   });
 
-  return NextResponse.json({ saved: true });
-}
+  return apiSuccess({ saved: true });
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
-  const { albumId } = await req.json();
-  if (!albumId) {
-    return NextResponse.json({ error: "albumId required" }, { status: 400 });
+  const body = await req.json();
+  const result = albumIdBodySchema.safeParse(body);
+  if (!result.success) {
+    return apiError("Invalid input", 400, result.error.flatten());
   }
+
+  const { albumId } = result.data;
 
   await prisma.userSavedAlbum.deleteMany({
     where: {
       userId: session.user.id,
-      albumId: parseInt(albumId),
+      albumId,
     },
   });
 
-  return NextResponse.json({ saved: false });
-}
+  return apiSuccess({ saved: false });
+});

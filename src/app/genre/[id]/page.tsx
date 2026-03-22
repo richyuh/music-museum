@@ -6,6 +6,7 @@ import { AlbumCoverCard } from "@/components/gallery/album-cover-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { GALLERY_GRID_SMALL_CLASSES } from "@/lib/constants";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -23,6 +24,11 @@ export async function generateMetadata({ params }: Props) {
   return {
     title: `${genre.name} | Music Museum`,
     description: genre.description || `Explore ${genre.name} albums`,
+    twitter: {
+      card: "summary_large_image",
+      title: `${genre.name} | Music Museum`,
+      description: genre.description || `Explore ${genre.name} albums`,
+    },
   };
 }
 
@@ -183,7 +189,7 @@ export default async function GenreRoomPage({ params }: Props) {
             <p className="text-sm text-muted-foreground mb-4">
               The essential {genre.name} albums every listener should know.
             </p>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            <div className={GALLERY_GRID_SMALL_CLASSES}>
               {genre.canonAlbums.map(({ album }) => (
                 <AlbumCoverCard
                   key={album.id}
@@ -245,7 +251,7 @@ export default async function GenreRoomPage({ params }: Props) {
                 </Link>
               </Button>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            <div className={GALLERY_GRID_SMALL_CLASSES}>
               {allAlbumsInGenre.map((album) => (
                 <AlbumCoverCard
                   key={album.id}

@@ -38,7 +38,13 @@ export default async function AdminAlbumsPage({
         </Button>
       </div>
 
-      <div className="rounded-lg border">
+      {albums.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No albums yet. Create your first album.</p>
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandler, apiSuccess } from "@/lib/api-utils";
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   const genres = await prisma.genre.findMany({
     where: { parentGenreId: null },
     include: {
@@ -19,5 +19,5 @@ export async function GET() {
     orderBy: { name: "asc" },
   });
 
-  return NextResponse.json(genres);
-}
+  return apiSuccess(genres);
+});

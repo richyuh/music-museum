@@ -29,7 +29,7 @@ async function fetchItunesCover(
     // Try to find best match - prefer exact-ish title match
     const titleLower = title.toLowerCase();
     const match =
-      data.results.find((r: any) =>
+      data.results.find((r: Record<string, string>) =>
         r.collectionName?.toLowerCase().includes(titleLower)
       ) || data.results[0];
 

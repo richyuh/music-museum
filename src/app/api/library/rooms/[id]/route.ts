@@ -1,18 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { idParamSchema, roomUpdateSchema } from "@/lib/validations";
 
-export async function GET(
+export const GET = withErrorHandler(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
   const { id } = await params;
-  const roomId = parseInt(id);
+  const idResult = idParamSchema.safeParse(parseInt(id));
+  if (!idResult.success) {
+    return apiError("Invalid room id", 400);
+  }
+  const roomId = idResult.data;
 
   const room = await prisma.userRoom.findFirst({
     where: { id: roomId, userId: session.user.id },
@@ -35,24 +40,35 @@ export async function GET(
   });
 
   if (!room) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return apiError("Room not found", 404);
   }
 
-  return NextResponse.json(room);
-}
+  return apiSuccess(room);
+});
 
-export async function PUT(
-  req: NextRequest,
+export const PUT = withErrorHandler(async (
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
   const { id } = await params;
-  const roomId = parseInt(id);
-  const { name, description } = await req.json();
+  const idResult = idParamSchema.safeParse(parseInt(id));
+  if (!idResult.success) {
+    return apiError("Invalid room id", 400);
+  }
+  const roomId = idResult.data;
+
+  const body = await req.json();
+  const result = roomUpdateSchema.safeParse(body);
+  if (!result.success) {
+    return apiError("Invalid input", 400, result.error.flatten());
+  }
+
+  const { name, description } = result.data;
 
   const room = await prisma.userRoom.updateMany({
     where: { id: roomId, userId: session.user.id },
@@ -63,27 +79,31 @@ export async function PUT(
   });
 
   if (room.count === 0) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return apiError("Room not found", 404);
   }
 
-  return NextResponse.json({ updated: true });
-}
+  return apiSuccess({ updated: true });
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandler(async (
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError("Unauthorized", 401);
   }
 
   const { id } = await params;
-  const roomId = parseInt(id);
+  const idResult = idParamSchema.safeParse(parseInt(id));
+  if (!idResult.success) {
+    return apiError("Invalid room id", 400);
+  }
+  const roomId = idResult.data;
 
   await prisma.userRoom.deleteMany({
     where: { id: roomId, userId: session.user.id },
   });
 
-  return NextResponse.json({ deleted: true });
-}
+  return apiSuccess({ deleted: true });
+});

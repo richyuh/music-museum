@@ -18,23 +18,25 @@ export async function POST(
   // Verify room belongs to user
   const room = await prisma.userRoom.findFirst({
     where: { id: roomId, userId: session.user.id },
-    include: { _count: { select: { albums: true } } },
   });
 
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  await prisma.userRoomAlbum.upsert({
-    where: {
-      roomId_albumId: { roomId, albumId: parseInt(albumId) },
-    },
-    create: {
-      roomId,
-      albumId: parseInt(albumId),
-      position: room._count.albums,
-    },
-    update: {},
+  await prisma.$transaction(async (tx) => {
+    const count = await tx.userRoomAlbum.count({ where: { roomId } });
+    await tx.userRoomAlbum.upsert({
+      where: {
+        roomId_albumId: { roomId, albumId: parseInt(albumId) },
+      },
+      create: {
+        roomId,
+        albumId: parseInt(albumId),
+        position: count,
+      },
+      update: {},
+    });
   });
 
   return NextResponse.json({ added: true });

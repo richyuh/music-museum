@@ -1,17 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { ITEMS_PER_PAGE } from "@/lib/constants";
+import { withErrorHandler, apiError, apiSuccess } from "@/lib/api-utils";
+import { albumQuerySchema, albumCreateSchema } from "@/lib/validations";
 
-export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams;
-  const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-  const limit = Math.min(100, parseInt(searchParams.get("limit") || String(ITEMS_PER_PAGE)));
-  const genre = searchParams.get("genre");
-  const yearMin = searchParams.get("yearMin") ? parseInt(searchParams.get("yearMin")!) : undefined;
-  const yearMax = searchParams.get("yearMax") ? parseInt(searchParams.get("yearMax")!) : undefined;
-  const tier = searchParams.get("tier");
-  const sort = searchParams.get("sort") || "impact-desc";
+export const GET = withErrorHandler(async (req: NextRequest) => {
+  const rawParams = Object.fromEntries(req.nextUrl.searchParams);
+  const result = albumQuerySchema.safeParse(rawParams);
+
+  if (!result.success) {
+    return apiError("Invalid query parameters", 400, result.error.flatten());
+  }
+
+  const { page, limit, genre, yearMin, yearMax, tier, sort } = result.data;
 
   const where: Record<string, unknown> = {};
 
@@ -71,36 +72,38 @@ export async function GET(req: NextRequest) {
     prisma.album.count({ where }),
   ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     albums,
     total,
     page,
     totalPages: Math.ceil(total / limit),
   });
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler(async (req: NextRequest) => {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return apiError("Forbidden", 403);
   }
 
   const body = await req.json();
-  const { title, artistName, releaseYear, coverUrl, summary, impactTier, impactScore, genreIds, linksJson } = body;
+  const result = albumCreateSchema.safeParse(body);
 
-  if (!title || !artistName || !releaseYear) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  if (!result.success) {
+    return apiError("Invalid album data", 400, result.error.flatten());
   }
+
+  const { title, artistName, releaseYear, coverUrl, summary, impactTier, impactScore, genreIds, linksJson } = result.data;
 
   const album = await prisma.album.create({
     data: {
       title,
       artistName,
-      releaseYear: parseInt(releaseYear),
+      releaseYear,
       coverUrl: coverUrl || "",
       summary: summary || null,
-      impactTier: impactTier || "Notable",
-      impactScore: parseInt(impactScore) || 50,
+      impactTier,
+      impactScore,
       linksJson: linksJson || "{}",
       genres: genreIds?.length
         ? {
@@ -112,5 +115,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json(album, { status: 201 });
-}
+  return apiSuccess(album, 201);
+});

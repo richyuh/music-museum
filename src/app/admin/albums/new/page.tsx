@@ -66,16 +66,18 @@ export default function NewAlbumPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium">Title</label>
+            <label htmlFor="album-title" className="text-sm font-medium">Title</label>
             <Input
+              id="album-title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               required
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Artist</label>
+            <label htmlFor="album-artist" className="text-sm font-medium">Artist</label>
             <Input
+              id="album-artist"
               value={form.artistName}
               onChange={(e) => setForm({ ...form, artistName: e.target.value })}
               required
@@ -85,8 +87,9 @@ export default function NewAlbumPage() {
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium">Year</label>
+            <label htmlFor="album-year" className="text-sm font-medium">Year</label>
             <Input
+              id="album-year"
               type="number"
               value={form.releaseYear}
               onChange={(e) =>
@@ -96,12 +99,12 @@ export default function NewAlbumPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Impact Tier</label>
+            <label htmlFor="album-impact-tier" className="text-sm font-medium">Impact Tier</label>
             <Select
               value={form.impactTier}
               onValueChange={(v) => setForm({ ...form, impactTier: v })}
             >
-              <SelectTrigger>
+              <SelectTrigger id="album-impact-tier">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -114,8 +117,9 @@ export default function NewAlbumPage() {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium">Impact Score</label>
+            <label htmlFor="album-impact-score" className="text-sm font-medium">Impact Score</label>
             <Input
+              id="album-impact-score"
               type="number"
               min={1}
               max={100}
@@ -128,8 +132,9 @@ export default function NewAlbumPage() {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Cover URL</label>
+          <label htmlFor="album-cover-url" className="text-sm font-medium">Cover URL</label>
           <Input
+            id="album-cover-url"
             value={form.coverUrl}
             onChange={(e) => setForm({ ...form, coverUrl: e.target.value })}
             placeholder="https://..."
@@ -137,8 +142,9 @@ export default function NewAlbumPage() {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Summary</label>
+          <label htmlFor="album-summary" className="text-sm font-medium">Summary</label>
           <textarea
+            id="album-summary"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
             rows={3}
             value={form.summary}
@@ -148,7 +154,7 @@ export default function NewAlbumPage() {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Genres</label>
+          <label id="album-genres-label" className="text-sm font-medium">Genres</label>
           <div className="flex flex-wrap gap-2 mt-1">
             {genres.map((g) => (
               <button
@@ -175,8 +181,9 @@ export default function NewAlbumPage() {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Links (JSON)</label>
+          <label htmlFor="album-links-json" className="text-sm font-medium">Links (JSON)</label>
           <textarea
+            id="album-links-json"
             className="w-full rounded-md border bg-background px-3 py-2 text-sm font-mono"
             rows={3}
             value={form.linksJson}

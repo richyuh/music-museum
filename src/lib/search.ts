@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 
 export async function searchAlbums(query: string, limit = 20) {
@@ -5,13 +6,13 @@ export async function searchAlbums(query: string, limit = 20) {
 
   // Try FTS5 first
   try {
-    const sanitized = query.replace(/[^\w\s]/g, "").trim();
+    const sanitized = query.replace(/[^\w\s'-]/g, "").trim();
     const ftsQuery = sanitized
       .split(/\s+/)
       .map((word) => `"${word}"*`)
       .join(" ");
 
-    const results = await prisma.$queryRawUnsafe<
+    const results = await prisma.$queryRaw<
       Array<{
         id: number;
         title: string;
@@ -22,14 +23,12 @@ export async function searchAlbums(query: string, limit = 20) {
         impact_score: number;
       }>
     >(
-      `SELECT a.id, a.title, a.artist_name, a.release_year, a.cover_url, a.impact_tier, a.impact_score
+      Prisma.sql`SELECT a.id, a.title, a.artist_name, a.release_year, a.cover_url, a.impact_tier, a.impact_score
        FROM albums_fts fts
        JOIN albums a ON a.id = fts.rowid
-       WHERE albums_fts MATCH ?
+       WHERE albums_fts MATCH ${ftsQuery}
        ORDER BY rank
-       LIMIT ?`,
-      ftsQuery,
-      limit
+       LIMIT ${limit}`
     );
 
     return results.map((r) => ({

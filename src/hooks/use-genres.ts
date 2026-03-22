@@ -7,6 +7,9 @@ export function useGenres() {
     queryKey: ["genres"],
     queryFn: async () => {
       const res = await fetch("/api/genres");
+      if (!res.ok) {
+        throw new Error(`Failed to fetch genres: ${res.status}`);
+      }
       return res.json();
     },
   });
