@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+
+# import cache
+prisma/import-albums/.cache/
 /.pnp
 .pnp.*
 .yarn/*
