@@ -34,9 +34,39 @@ function getParentGenre(genres: string[]): string {
   return genres[0] || "rock";
 }
 
+async function loadExistingCoverUrls(): Promise<Map<string, string>> {
+  const coverMap = new Map<string, string>();
+  const outPath = path.join(__dirname, "..", "data", "albums.ts");
+  try {
+    const content = await fs.readFile(outPath, "utf-8");
+    // Match lines like: a("Title","Artist",...,"mbid", "coverUrl"),
+    // The coverUrl is the last quoted string before the closing "),"
+    const lineRegex = /^\s*a\(/;
+    for (const line of content.split("\n")) {
+      if (!lineRegex.test(line)) continue;
+      // Extract all quoted strings from the line
+      const strings = [...line.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(m => m[1]);
+      if (strings.length < 2) continue;
+      const last = strings[strings.length - 1];
+      const secondLast = strings[strings.length - 2];
+      // If last string looks like a URL, it's a coverUrl; secondLast is mbid
+      if (last.startsWith("https://") && secondLast.length > 10) {
+        coverMap.set(secondLast, last);
+      }
+    }
+  } catch {
+    // No existing file, nothing to preserve
+  }
+  console.log(`  Loaded ${coverMap.size} existing cover URLs to preserve`);
+  return coverMap;
+}
+
 export async function generateAlbumsFile(
   albums: ScoredAlbum[]
 ): Promise<void> {
+  // Load existing cover URLs before regenerating
+  const existingCovers = await loadExistingCoverUrls();
+
   // Group albums by parent genre
   const genreGroups = new Map<string, ScoredAlbum[]>();
   for (const g of PARENT_GENRES) {
@@ -72,11 +102,12 @@ export async function generateAlbumsFile(
   summary: string;
   links: { spotify?: string; apple?: string; youtube?: string };
   mbid?: string;
+  coverUrl?: string;
 }
 
-function a(title: string, artist: string, year: number, genres: string[], subgenres: string[], tier: "Landmark"|"Essential"|"Notable", score: number, summary: string, mbid?: string): AlbumSeedData {
+function a(title: string, artist: string, year: number, genres: string[], subgenres: string[], tier: "Landmark"|"Essential"|"Notable", score: number, summary: string, mbid?: string, coverUrl?: string): AlbumSeedData {
   const q = encodeURIComponent(artist + " " + title);
-  return { title, artistName: artist, releaseYear: year, genres, subgenres, impactTier: tier, impactScore: score, summary, links: { spotify: \`https://open.spotify.com/search/\${q}\`, apple: \`https://music.apple.com/us/search?term=\${q}\`, youtube: \`https://music.youtube.com/search?q=\${q}\` }, mbid };
+  return { title, artistName: artist, releaseYear: year, genres, subgenres, impactTier: tier, impactScore: score, summary, links: { spotify: \`https://open.spotify.com/search/\${q}\`, apple: \`https://music.apple.com/us/search?term=\${q}\`, youtube: \`https://music.youtube.com/search?q=\${q}\` }, mbid, coverUrl };
 }
 
 export const albums: AlbumSeedData[] = [
@@ -101,8 +132,10 @@ export const albums: AlbumSeedData[] = [
       const summary = escapeString(album.summary || "");
       const genresArr = JSON.stringify(album.genres);
       const mbidArg = album.mbid ? `, "${album.mbid}"` : "";
+      const coverUrl = album.mbid ? existingCovers.get(album.mbid) : undefined;
+      const coverArg = coverUrl ? `, "${coverUrl}"` : "";
 
-      output += `  a("${escapeString(album.title)}","${escapeString(album.artist)}",${album.releaseYear},${genresArr},[],"${album.impactTier}",${album.impactScore},"${summary}"${mbidArg}),\n`;
+      output += `  a("${escapeString(album.title)}","${escapeString(album.artist)}",${album.releaseYear},${genresArr},[],"${album.impactTier}",${album.impactScore},"${summary}"${mbidArg}${coverArg}),\n`;
 
       // Top 12 = hero, top 24 = canon
       if (i < 12) heroAlbums[genreSlug].push(totalIndex);
