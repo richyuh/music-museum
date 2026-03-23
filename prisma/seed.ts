@@ -101,10 +101,13 @@ async function main() {
       .map((slug) => genreMap.get(slug))
       .filter((id): id is number => id !== undefined);
 
-    // Generate cover placeholder URL based on genre color
-    const firstGenre = genres.find((g) => g.slug === a.genres[0]);
-    const color = (firstGenre?.colorHex || "#6366f1").replace("#", "");
-    const coverUrl = `https://placehold.co/600x600/${color}/ffffff?text=${encodeURIComponent(a.title.substring(0, 30))}&font=montserrat`;
+    // Use baked cover URL if available, otherwise generate placeholder
+    let coverUrl = a.coverUrl;
+    if (!coverUrl) {
+      const firstGenre = genres.find((g) => g.slug === a.genres[0]);
+      const color = (firstGenre?.colorHex || "#6366f1").replace("#", "");
+      coverUrl = `https://placehold.co/600x600/${color}/ffffff?text=${encodeURIComponent(a.title.substring(0, 30))}&font=montserrat`;
+    }
 
     const created = await prisma.album.create({
       data: {

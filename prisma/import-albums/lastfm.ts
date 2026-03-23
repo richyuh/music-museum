@@ -69,8 +69,8 @@ export async function fetchLastfm(
 
       const album = data.album;
       let summary: string | null = null;
-      if (album.wiki?.summary) {
-        summary = stripHtml(album.wiki.summary);
+      if (album.wiki?.content) {
+        summary = stripHtml(album.wiki.content);
         if (summary.length < 10) summary = null;
       }
 
