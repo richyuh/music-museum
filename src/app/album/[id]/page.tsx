@@ -6,6 +6,7 @@ import { getRelatedAlbums } from "@/lib/related-albums";
 import { Header } from "@/components/layout/header";
 import { AlbumLinks } from "@/components/album/album-links";
 import { SaveAlbumButton } from "@/components/album/save-album-button";
+import { AlbumSummary } from "@/components/album/album-summary";
 import { RelatedAlbums } from "@/components/album/related-albums";
 import { Badge } from "@/components/ui/badge";
 
@@ -169,13 +170,7 @@ export default async function AlbumPage({ params }: Props) {
             </div>
 
             {/* Placard story */}
-            {album.summary && (
-              <div className="rounded-lg border bg-card p-4">
-                <p className="text-sm leading-relaxed text-card-foreground">
-                  {album.summary}
-                </p>
-              </div>
-            )}
+            {album.summary && <AlbumSummary summary={album.summary} />}
 
             {/* Actions */}
             <div className="flex items-center gap-3">
