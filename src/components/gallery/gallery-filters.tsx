@@ -13,7 +13,14 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { IMPACT_TIERS, GENRES, YEAR_RANGE } from "@/lib/constants";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+const TIER_DESCRIPTIONS: Record<string, string> = {
+  Landmark: "Top 10% — the most culturally significant albums",
+  Essential: "Top 35% — highly influential albums",
+  Notable: "Noteworthy albums worth discovering",
+};
 
 const SORT_OPTIONS = [
   { value: "impact-desc", label: "Impact" },
@@ -126,23 +133,29 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
       {/* Impact tier toggles */}
       <div className="flex gap-1">
         {IMPACT_TIERS.map((tier) => (
-          <button
-            key={tier}
-            type="button"
-            onClick={() =>
-              updateParams({ tier: activeTier === tier ? undefined : tier })
-            }
-            className={cn(
-              "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors min-h-[44px] min-w-[44px] justify-center",
-              activeTier === tier
-                ? "border-transparent bg-primary text-primary-foreground"
-                : "border-input bg-background hover:bg-accent"
-            )}
-            aria-pressed={activeTier === tier}
-            aria-label={`Filter by ${tier} tier`}
-          >
-            {tier}
-          </button>
+          <Tooltip key={tier}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() =>
+                  updateParams({ tier: activeTier === tier ? undefined : tier })
+                }
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors min-h-[44px] min-w-[44px] justify-center",
+                  activeTier === tier
+                    ? "border-transparent bg-primary text-primary-foreground"
+                    : "border-input bg-background hover:bg-accent"
+                )}
+                aria-pressed={activeTier === tier}
+                aria-label={`Filter by ${tier} tier`}
+              >
+                {tier}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {TIER_DESCRIPTIONS[tier]}
+            </TooltipContent>
+          </Tooltip>
         ))}
       </div>
 
