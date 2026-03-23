@@ -1,27 +1,15 @@
 import { PrismaClient } from "../src/generated/prisma/client.js";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { genres, adjacencies } from "./data/genres";
 import { albums, genreHeroAlbums, genreCanonAlbums } from "./data/albums";
 
-import path from "path";
-const dbPath = "file:" + path.join(__dirname, "dev.db");
-const adapter = new PrismaBetterSqlite3({ url: dbPath });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("🎵 Seeding Music Museum database...\n");
-
-  // Drop FTS triggers and table first (before cleaning data, since triggers reference FTS table)
-  try {
-    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_ai`);
-    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_ad`);
-    await prisma.$executeRawUnsafe(`DROP TRIGGER IF EXISTS albums_fts_au`);
-    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS albums_fts`);
-  } catch (e) {
-    console.warn("Warning: Failed to drop FTS table/triggers:", e);
-  }
 
   // Clean existing data
   console.log("Cleaning existing data...");
@@ -176,42 +164,16 @@ async function main() {
   }
   console.log("  ✓ Canon albums set");
 
-  // 6. Create FTS5 virtual table
-  console.log("Creating FTS5 search index...");
+  // 6. Create GIN index for full-text search
+  console.log("Creating full-text search index...");
   try {
     await prisma.$executeRawUnsafe(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS albums_fts USING fts5(
-        title, artist_name,
-        content='albums',
-        content_rowid='id',
-        tokenize='porter unicode61'
-      )
+      CREATE INDEX IF NOT EXISTS albums_search_idx ON albums
+      USING GIN (to_tsvector('english', title || ' ' || artist_name))
     `);
-    await prisma.$executeRawUnsafe(`
-      INSERT INTO albums_fts(rowid, title, artist_name)
-      SELECT id, title, artist_name FROM albums
-    `);
-
-    // Auto-sync triggers
-    await prisma.$executeRawUnsafe(`
-      CREATE TRIGGER IF NOT EXISTS albums_fts_ai AFTER INSERT ON albums BEGIN
-        INSERT INTO albums_fts(rowid, title, artist_name) VALUES (new.id, new.title, new.artist_name);
-      END
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE TRIGGER IF NOT EXISTS albums_fts_ad AFTER DELETE ON albums BEGIN
-        INSERT INTO albums_fts(albums_fts, rowid, title, artist_name) VALUES('delete', old.id, old.title, old.artist_name);
-      END
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE TRIGGER IF NOT EXISTS albums_fts_au AFTER UPDATE ON albums BEGIN
-        INSERT INTO albums_fts(albums_fts, rowid, title, artist_name) VALUES('delete', old.id, old.title, old.artist_name);
-        INSERT INTO albums_fts(rowid, title, artist_name) VALUES (new.id, new.title, new.artist_name);
-      END
-    `);
-    console.log("  ✓ FTS5 index created");
+    console.log("  ✓ Full-text search index created");
   } catch (e) {
-    console.warn("  ⚠ FTS5 creation failed (may not be available):", e);
+    console.warn("  ⚠ Full-text search index creation failed:", e);
   }
 
   // 7. Create admin user

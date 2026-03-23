@@ -4,13 +4,14 @@ import { prisma } from "./prisma";
 export async function searchAlbums(query: string, limit = 20) {
   if (!query || query.length < 2) return [];
 
-  // Try FTS5 first
+  // Try PostgreSQL full-text search first
   try {
     const sanitized = query.replace(/[^\w\s'-]/g, "").trim();
-    const ftsQuery = sanitized
+    const tsQuery = sanitized
       .split(/\s+/)
-      .map((word) => `"${word}"*`)
-      .join(" ");
+      .filter(Boolean)
+      .map((word) => `${word}:*`)
+      .join(" & ");
 
     const results = await prisma.$queryRaw<
       Array<{
@@ -24,10 +25,9 @@ export async function searchAlbums(query: string, limit = 20) {
       }>
     >(
       Prisma.sql`SELECT a.id, a.title, a.artist_name, a.release_year, a.cover_url, a.impact_tier, a.impact_score
-       FROM albums_fts fts
-       JOIN albums a ON a.id = fts.rowid
-       WHERE albums_fts MATCH ${ftsQuery}
-       ORDER BY rank
+       FROM albums a
+       WHERE to_tsvector('english', a.title || ' ' || a.artist_name) @@ to_tsquery('english', ${tsQuery})
+       ORDER BY ts_rank(to_tsvector('english', a.title || ' ' || a.artist_name), to_tsquery('english', ${tsQuery})) DESC
        LIMIT ${limit}`
     );
 
@@ -41,12 +41,12 @@ export async function searchAlbums(query: string, limit = 20) {
       impactScore: r.impact_score,
     }));
   } catch {
-    // Fallback to LIKE queries if FTS5 is not available
+    // Fallback to ILIKE queries if full-text search fails
     const results = await prisma.album.findMany({
       where: {
         OR: [
-          { title: { contains: query } },
-          { artistName: { contains: query } },
+          { title: { contains: query, mode: "insensitive" } },
+          { artistName: { contains: query, mode: "insensitive" } },
         ],
       },
       take: limit,
