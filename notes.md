@@ -73,3 +73,12 @@
 | **Total** | **~5 hours** |
 
 Not complex, just slow. The pipeline already works — it just needs parallelization and a scalable album sourcing strategy. Run it overnight and you're done.
+
+---
+
+## Collection Analysis (1,173 albums)
+
+- **Genre breakdown**: Rock dominates at 39.8%, followed by pop (27.6%), electronic (25.7%), hip-hop (18.8%), jazz (16.5%), folk/country (14.7%), R&B/soul (14.0%), metal (11.6%). Albums have multiple genres so percentages overlap.
+- **Decade breakdown**: 1990s–2010s hold ~59% of the collection (236, 216, 239 albums respectively). 1970s is the next strongest decade at 154 (13.1%). 1940s–1950s are sparse (28 total).
+- **Year 2000 spike**: 71 albums are tagged to the year 2000 — likely an artifact in the seed data worth investigating.
+- **2020s gap**: Only 89 albums (7.6%) from the 2020s, tapering to just 3 from 2024 — room to expand recent coverage.
