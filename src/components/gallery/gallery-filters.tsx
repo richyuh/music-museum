@@ -12,7 +12,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { IMPACT_TIERS, GENRES, YEAR_RANGE } from "@/lib/constants";
+import { IMPACT_TIERS, GENRES, YEAR_RANGE, DECADES } from "@/lib/constants";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -128,6 +128,35 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
           aria-label="Year range"
         />
         <span className="text-xs text-muted-foreground">{yearMax}</span>
+      </div>
+
+      {/* Decade filter buttons */}
+      <div className="flex gap-1">
+        {DECADES.map((decade) => {
+          const isActive = yearMin === decade.min && yearMax === decade.max;
+          return (
+            <button
+              key={decade.label}
+              type="button"
+              onClick={() =>
+                updateParams({
+                  yearMin: isActive ? undefined : String(decade.min),
+                  yearMax: isActive ? undefined : String(decade.max),
+                })
+              }
+              className={cn(
+                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors",
+                isActive
+                  ? "border-transparent bg-primary text-primary-foreground"
+                  : "border-input bg-background hover:bg-accent"
+              )}
+              aria-pressed={isActive}
+              aria-label={`Filter by ${decade.label}`}
+            >
+              {decade.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Impact tier toggles */}

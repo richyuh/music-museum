@@ -34,6 +34,17 @@ export const GENRES = [
 
 export const YEAR_RANGE = { min: 1950, max: new Date().getFullYear() } as const;
 
+export const DECADES = [
+  { label: "50s", min: 1950, max: 1959 },
+  { label: "60s", min: 1960, max: 1969 },
+  { label: "70s", min: 1970, max: 1979 },
+  { label: "80s", min: 1980, max: 1989 },
+  { label: "90s", min: 1990, max: 1999 },
+  { label: "00s", min: 2000, max: 2009 },
+  { label: "10s", min: 2010, max: 2019 },
+  { label: "20s", min: 2020, max: 2029 },
+] as const;
+
 export const GALLERY_GRID_CLASSES = "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2";
 
 export const GALLERY_GRID_SMALL_CLASSES = "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2";
