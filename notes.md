@@ -20,7 +20,7 @@
 ### Polish and Delight
 
 - [ ] **Album card flip animation** — Click to flip and see summary + links on the back
-- [ ] **Decade filter buttons** — Quick-tap 60s, 70s, 80s, etc. alongside the year slider
+- [x] **Decade filter buttons** — Quick-tap 60s, 70s, 80s, etc. alongside the year slider
 - [ ] **Genre color theming** — Tint the UI with the genre's color hex when browsing genre pages
 - [ ] **Stats page** — Personal library summary (album count, top genres, favorite decades)
 - [ ] **Keyboard navigation** — Arrow keys to browse gallery, Enter to open, Escape to close
