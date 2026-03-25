@@ -6,6 +6,8 @@ import { AlbumOfTheDay } from "@/components/album/album-of-the-day";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GALLERY_GRID_CLASSES } from "@/lib/constants";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Gallery | Music Museum",
   description: "Browse the gallery wall — hundreds of album covers organized by genre, era, and impact.",
