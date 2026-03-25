@@ -14,7 +14,7 @@ async function main() {
   let skipped = 0;
 
   for (const album of albums) {
-    const spotifyId = album.links.spotifyId;
+    const spotifyId = (album.links as Record<string, string | undefined>).spotifyId;
     if (!spotifyId) {
       skipped++;
       continue;
