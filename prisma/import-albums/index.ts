@@ -2,6 +2,7 @@ import "dotenv/config";
 import { candidates } from "./candidates.js";
 import { fetchMusicBrainz } from "./musicbrainz.js";
 import { fetchLastfm } from "./lastfm.js";
+import { fetchAllSpotify } from "./spotify.js";
 import { computeScore, assignTiers, type ScoredAlbum } from "./scoring.js";
 import { mapTags } from "./genre-mapping.js";
 import { generateAlbumsFile } from "./output.js";
@@ -98,6 +99,20 @@ async function main() {
   }
 
   console.log(`\nFetched ${fetched} albums (${errors} errors)`);
+
+  // 2b. Fetch Spotify data in parallel batch
+  if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
+    console.log("\nWarning: SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET not set, skipping Spotify enrichment");
+  } else {
+    const spotifyMap = await fetchAllSpotify(uniqueCandidates);
+    for (const album of results) {
+      const key = `${album.artist.toLowerCase()}|||${album.title.toLowerCase()}`;
+      const spotify = spotifyMap.get(key);
+      if (spotify) {
+        album.spotifyAlbumId = spotify.spotifyAlbumId;
+      }
+    }
+  }
 
   // 3. Assign tiers by percentile
   assignTiers(results);

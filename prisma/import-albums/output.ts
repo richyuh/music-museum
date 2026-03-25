@@ -100,14 +100,15 @@ export async function generateAlbumsFile(
   impactTier: "Landmark" | "Essential" | "Notable";
   impactScore: number;
   summary: string;
-  links: { spotify?: string; apple?: string; youtube?: string };
+  links: { spotify?: string; spotifyId?: string; apple?: string; youtube?: string };
   mbid?: string;
   coverUrl?: string;
 }
 
-function a(title: string, artist: string, year: number, genres: string[], subgenres: string[], tier: "Landmark"|"Essential"|"Notable", score: number, summary: string, mbid?: string, coverUrl?: string): AlbumSeedData {
+function a(title: string, artist: string, year: number, genres: string[], subgenres: string[], tier: "Landmark"|"Essential"|"Notable", score: number, summary: string, mbid?: string, coverUrl?: string, spotifyAlbumId?: string): AlbumSeedData {
   const q = encodeURIComponent(artist + " " + title);
-  return { title, artistName: artist, releaseYear: year, genres, subgenres, impactTier: tier, impactScore: score, summary, links: { spotify: \`https://open.spotify.com/search/\${q}\`, apple: \`https://music.apple.com/us/search?term=\${q}\`, youtube: \`https://music.youtube.com/search?q=\${q}\` }, mbid, coverUrl };
+  const spotifyUrl = spotifyAlbumId ? \`https://open.spotify.com/album/\${spotifyAlbumId}\` : \`https://open.spotify.com/search/\${q}\`;
+  return { title, artistName: artist, releaseYear: year, genres, subgenres, impactTier: tier, impactScore: score, summary, links: { spotify: spotifyUrl, spotifyId: spotifyAlbumId, apple: \`https://music.apple.com/us/search?term=\${q}\`, youtube: \`https://music.youtube.com/search?q=\${q}\` }, mbid, coverUrl };
 }
 
 export const albums: AlbumSeedData[] = [
@@ -131,11 +132,26 @@ export const albums: AlbumSeedData[] = [
       const album = group[i];
       const summary = escapeString(album.summary || "");
       const genresArr = JSON.stringify(album.genres);
-      const mbidArg = album.mbid ? `, "${album.mbid}"` : "";
       const coverUrl = album.mbid ? existingCovers.get(album.mbid) : undefined;
-      const coverArg = coverUrl ? `, "${coverUrl}"` : "";
 
-      output += `  a("${escapeString(album.title)}","${escapeString(album.artist)}",${album.releaseYear},${genresArr},[],"${album.impactTier}",${album.impactScore},"${summary}"${mbidArg}${coverArg}),\n`;
+      // Build trailing optional args (mbid, coverUrl, spotifyAlbumId)
+      // We need to pass undefined for gaps when a later arg is present
+      const trailingArgs: string[] = [];
+      const mbidVal = album.mbid ? `"${album.mbid}"` : "undefined";
+      const coverVal = coverUrl ? `"${coverUrl}"` : "undefined";
+      const spotifyVal = album.spotifyAlbumId ? `"${album.spotifyAlbumId}"` : "undefined";
+
+      if (album.spotifyAlbumId) {
+        trailingArgs.push(mbidVal, coverVal, spotifyVal);
+      } else if (coverUrl) {
+        trailingArgs.push(mbidVal, coverVal);
+      } else if (album.mbid) {
+        trailingArgs.push(mbidVal);
+      }
+
+      const trailingSuffix = trailingArgs.length > 0 ? `, ${trailingArgs.join(", ")}` : "";
+
+      output += `  a("${escapeString(album.title)}","${escapeString(album.artist)}",${album.releaseYear},${genresArr},[],"${album.impactTier}",${album.impactScore},"${summary}"${trailingSuffix}),\n`;
 
       // Top 12 = hero, top 24 = canon
       if (i < 12) heroAlbums[genreSlug].push(totalIndex);
