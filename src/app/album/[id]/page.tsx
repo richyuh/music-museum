@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getRelatedAlbums } from "@/lib/related-albums";
 import { Header } from "@/components/layout/header";
 import { AlbumLinks } from "@/components/album/album-links";
+import { AlbumPreviews } from "@/components/album/album-previews";
 import { SaveAlbumButton } from "@/components/album/save-album-button";
 import { AlbumSummary } from "@/components/album/album-summary";
 import { RelatedAlbums } from "@/components/album/related-albums";
@@ -179,6 +180,8 @@ export default async function AlbumPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        <AlbumPreviews linksJson={album.linksJson} />
 
         {/* Related albums */}
         <div className="mt-12 space-y-8">
