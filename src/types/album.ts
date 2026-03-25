@@ -3,6 +3,7 @@ export interface AlbumLinks {
   apple?: string;
   youtube?: string;
   wikipedia?: string;
+  spotifyId?: string;
 }
 
 export interface AlbumCard {

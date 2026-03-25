@@ -12,6 +12,7 @@ export interface ScoredAlbum {
   summary: string | null;
   listeners: number;
   playcount: number;
+  spotifyAlbumId?: string | null;
 }
 
 export function computeScore(
