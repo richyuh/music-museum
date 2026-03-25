@@ -82,3 +82,9 @@ Not complex, just slow. The pipeline already works — it just needs paralleliza
 - **Decade breakdown**: 1990s–2010s hold ~59% of the collection (236, 216, 239 albums respectively). 1970s is the next strongest decade at 154 (13.1%). 1940s–1950s are sparse (28 total).
 - **Year 2000 spike**: 71 albums are tagged to the year 2000 — likely an artifact in the seed data worth investigating.
 - **2020s gap**: Only 89 albums (7.6%) from the 2020s, tapering to just 3 from 2024 — room to expand recent coverage.
+
+---
+
+## Lessons Learned
+
+- **Spotify API rate limiting** — Sending ~3,500 requests in rapid succession (concurrency 10, 100ms batch delay) triggered an extended 429 ban lasting 30+ minutes. The ban is per **client ID**, so regenerating the client secret does not help. Free tier limits you to 1 app, so you can't create a fresh app to bypass it. Fix: use concurrency of 5, 500ms batch delay, and avoid bulk runs with broken queries that double request count via fallback retries. Also: `encodeURIComponent` encodes `:` to `%3A`, which breaks Spotify's `album:` and `artist:` field filter syntax — build the URL manually instead of using `URLSearchParams` or `encodeURIComponent` on the full query string.
