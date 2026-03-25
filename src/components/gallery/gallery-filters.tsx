@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -36,6 +37,14 @@ interface GalleryFiltersProps {
 export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [aotdId, setAotdId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/albums/album-of-the-day")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data?.id) setAotdId(data.id); })
+      .catch(() => {});
+  }, []);
 
   const activeGenre = searchParams.get("genre") || undefined;
   const activeTier = searchParams.get("tier") || undefined;
@@ -187,6 +196,24 @@ export function GalleryFilters({ onFiltersChange }: GalleryFiltersProps) {
           </Tooltip>
         ))}
       </div>
+
+      {/* Album of the Day */}
+      {aotdId && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => router.push(`/album/${aotdId}`)}
+              className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400 transition-colors hover:bg-amber-500/20 min-h-[44px] min-w-[44px] justify-center"
+              aria-label="Album of the Day"
+            >
+              <Sparkles className="h-3 w-3" />
+              Today
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Album of the Day</TooltipContent>
+        </Tooltip>
+      )}
 
       {/* Sort */}
       <Select

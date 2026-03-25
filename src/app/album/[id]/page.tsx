@@ -3,12 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getRelatedAlbums } from "@/lib/related-albums";
+import { getAlbumOfTheDay } from "@/lib/album-of-the-day";
 import { Header } from "@/components/layout/header";
 import { AlbumLinks } from "@/components/album/album-links";
+import { AlbumPreviews } from "@/components/album/album-previews";
 import { SaveAlbumButton } from "@/components/album/save-album-button";
 import { AlbumSummary } from "@/components/album/album-summary";
 import { RelatedAlbums } from "@/components/album/related-albums";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -68,11 +71,11 @@ export default async function AlbumPage({ params }: Props) {
   if (!album) notFound();
 
   const genreIds = album.genres.map((ag) => ag.genreId);
-  const { sameRoom, adjacent } = await getRelatedAlbums(
-    album.id,
-    genreIds,
-    album.releaseYear
-  );
+  const [{ sameRoom, adjacent }, albumOfTheDay] = await Promise.all([
+    getRelatedAlbums(album.id, genreIds, album.releaseYear),
+    getAlbumOfTheDay(),
+  ]);
+  const isAlbumOfTheDay = albumOfTheDay?.id === album.id;
 
   const subgenres: string[] = (() => {
     try {
@@ -143,6 +146,15 @@ export default async function AlbumPage({ params }: Props) {
               >
                 {album.impactTier}
               </Badge>
+              {isAlbumOfTheDay && (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-500/20 text-amber-400 border-amber-500/30"
+                >
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  Album of the Day
+                </Badge>
+              )}
               {album.genres.map((ag) => (
                 <Link key={ag.genre.slug} href={`/genre/${ag.genre.slug}`}>
                   <Badge
@@ -179,6 +191,8 @@ export default async function AlbumPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        <AlbumPreviews linksJson={album.linksJson} />
 
         {/* Related albums */}
         <div className="mt-12 space-y-8">
