@@ -85,6 +85,48 @@ Not complex, just slow. The pipeline already works — it just needs paralleliza
 
 ---
 
+## Top 10 Most Impactful User Features
+
+Ranked by user value, leveraging existing data model and infrastructure.
+
+1. **Personalized recommendations** — "For You" section on homepage using saved albums to suggest related albums by genre overlap, era proximity, and impact score. The genre adjacency graph (158 connections) and user save data already exist to power this without external APIs.
+
+2. **Shareable public rooms** — Add `isPublic` flag and `publicSlug` to UserRoom so users can share curated collections via URL. Public room pages with full OpenGraph metadata turn every collection into a shareable music guide. Currently rooms are private-only, locking away the strongest engagement loop.
+
+3. **Artist pages** — `/artist/[name]` route showing full discography within the museum, bio context, and genre spread. Currently no artist-centric browsing exists — users who like one album by an artist have no path to find others. Artist data can be derived from existing `artistName` field.
+
+4. **Search autocomplete** — Typeahead dropdown on the search input showing top matching albums and artists as the user types. Current search requires submitting a full query and navigating to `/search`. Autocomplete reduces friction and enables faster discovery.
+
+5. **User library stats dashboard** — `/library/stats` page showing personal genre breakdown, decade distribution, save timeline, and room analytics. All data exists in UserSavedAlbum (with timestamps) and UserRoom relations. Turns passive saving into an engaging self-portrait.
+
+6. **Genre network visualization** — Interactive force-directed graph of all 52 genres using the 158 GenreAdjacency connections and genre colorHex values. Click a genre node to navigate to its page. Makes the museum's genre taxonomy explorable and beautiful.
+
+7. **Collaborative rooms** — Extend UserRoom with a collaborators relation so multiple users can curate a room together. Invite by email, real-time album additions. Transforms rooms from solo bookmarks into shared playlists.
+
+8. **Trending and popular** — "Most Saved This Week" and "Rising Albums" sections powered by aggregating UserSavedAlbum.savedAt timestamps. Adds a social pulse to the museum — users can see what the community is discovering.
+
+9. **Subgenre faceted filtering** — Multi-select filter using `subgenresJson` data already stored on every album. Current filtering is limited to 8 parent genres. Subgenre filtering lets users drill into "shoegaze" or "trip-hop" directly from the gallery.
+
+10. **Album comparison view** — `/compare?albums=123,456` route showing two albums side-by-side: cover art, genres, subgenres, era, impact score, related genres. Useful for understanding what connects or distinguishes two albums. All data already exists on the Album model.
+
+---
+
+## Top 5 Coding Hygiene & Security Improvements
+
+Ranked by risk and impact to production readiness.
+
+1. **Enforce rate limiting on all API routes** — `src/lib/rate-limit.ts` exists but is not wired into any route handler. Signup, search, and library endpoints are all unprotected. Without rate limiting, brute-force attacks on auth, DoS via expensive full-text search queries, and credential stuffing are all possible. Wire `rateLimit()` into every API route with IP-based limits for public endpoints and user-based limits for authenticated ones.
+
+2. **Fix inconsistent error handling and input validation** — `/api/library/rooms/[id]/albums/route.ts` bypasses `withErrorHandler()` and does raw `parseInt()` on `albumId` with no Zod validation. `/api/genres/[id]/route.ts` also skips validation on pagination params. Unify all routes to use `withErrorHandler` wrapper and Zod schema validation to prevent unhandled errors and malformed input.
+
+3. **Tighten Content Security Policy** — `next.config.ts` sets `script-src 'self' 'unsafe-inline' 'unsafe-eval'` which defeats the purpose of CSP entirely. Replace with nonce-based script loading to actually protect against XSS. Also add missing headers: `Strict-Transport-Security`, `X-Download-Options`, `Permissions-Policy`.
+
+4. **Add caching and fix N+1 queries** — Album detail pages make 4-5 sequential DB queries (album + related albums + album-of-the-day). Genre pages do a massive nested include across 5 relations. No page exports `revalidate` for ISR, and no API routes set `Cache-Control` headers. Add ISR (`revalidate: 3600`) to genre/album pages, cache album-of-the-day for 24 hours (it's deterministic), and batch related-album queries into a single CTE.
+
+5. **Expand test coverage beyond 25%** — Only 5 of 20 API endpoints have tests. Zero React components, zero hooks, and zero page components are tested. Library routes (the core user feature) are entirely untested. Prioritize: library CRUD routes, `getRelatedAlbums()` scoring logic, `getAlbumOfTheDay()` hash logic, then hook-level tests for `useLibrary` and `useAlbums`.
+
+---
+
 ## Lessons Learned
 
 - **Spotify API rate limiting** — Sending ~3,500 requests in rapid succession (concurrency 10, 100ms batch delay) triggered an extended 429 ban lasting 30+ minutes. The ban is per **client ID**, so regenerating the client secret does not help. Free tier limits you to 1 app, so you can't create a fresh app to bypass it. Fix: use concurrency of 5, 500ms batch delay, and avoid bulk runs with broken queries that double request count via fallback retries. Also: `encodeURIComponent` encodes `:` to `%3A`, which breaks Spotify's `album:` and `artist:` field filter syntax — build the URL manually instead of using `URLSearchParams` or `encodeURIComponent` on the full query string.
