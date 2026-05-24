@@ -10,6 +10,7 @@ import { AlbumPreviews } from "@/components/album/album-previews";
 import { SaveAlbumButton } from "@/components/album/save-album-button";
 import { AlbumSummary } from "@/components/album/album-summary";
 import { RelatedAlbums } from "@/components/album/related-albums";
+import { AffiliateLinks } from "@/components/album/affiliate-links";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 
@@ -189,6 +190,7 @@ export default async function AlbumPage({ params }: Props) {
               <SaveAlbumButton albumId={album.id} />
               <AlbumLinks linksJson={album.linksJson} />
             </div>
+            <AffiliateLinks artistName={album.artistName} albumTitle={album.title} />
           </div>
         </div>
 
