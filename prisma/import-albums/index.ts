@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { candidates } from "./candidates.js";
+import { candidates } from "./candidates/index.js";
 import { fetchMusicBrainz } from "./musicbrainz.js";
 import { fetchLastfm } from "./lastfm.js";
 import { fetchAllSpotify } from "./spotify.js";
@@ -51,9 +51,11 @@ async function main() {
     }
 
     try {
-      // Fetch from both APIs
-      const mb = await fetchMusicBrainz(candidate.artist, candidate.title);
-      const lastfm = await fetchLastfm(candidate.artist, candidate.title);
+      // Fetch from both APIs (parallel — independent APIs with separate rate limits)
+      const [mb, lastfm] = await Promise.all([
+        fetchMusicBrainz(candidate.artist, candidate.title),
+        fetchLastfm(candidate.artist, candidate.title),
+      ]);
 
       // Determine release year
       const releaseYear = mb.releaseYear || 2000; // fallback
@@ -104,13 +106,17 @@ async function main() {
   if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
     console.log("\nWarning: SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET not set, skipping Spotify enrichment");
   } else {
-    const spotifyMap = await fetchAllSpotify(uniqueCandidates);
-    for (const album of results) {
-      const key = `${album.artist.toLowerCase()}|||${album.title.toLowerCase()}`;
-      const spotify = spotifyMap.get(key);
-      if (spotify) {
-        album.spotifyAlbumId = spotify.spotifyAlbumId;
+    try {
+      const spotifyMap = await fetchAllSpotify(uniqueCandidates);
+      for (const album of results) {
+        const key = `${album.artist.toLowerCase()}|||${album.title.toLowerCase()}`;
+        const spotify = spotifyMap.get(key);
+        if (spotify) {
+          album.spotifyAlbumId = spotify.spotifyAlbumId;
+        }
       }
+    } catch (err) {
+      console.warn(`\nWarning: Spotify enrichment failed (${err}), skipping`);
     }
   }
 

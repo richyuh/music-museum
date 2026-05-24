@@ -19,7 +19,7 @@ model Album {
   impactTier    String   @default("Notable") @map("impact_tier")
   linksJson     String   @default("{}") @map("links_json")
   subgenresJson String   @default("[]") @map("subgenres_json")
-  mbid          String?
+  mbid          String?  @unique
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -29,6 +29,7 @@ model Album {
   heroOfGenres  GenreHeroAlbum[]
   canonOfGenres GenreCanonAlbum[]
 
+  @@unique([title, artistName, releaseYear])
   @@map("albums")
 }
 
