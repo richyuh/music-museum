@@ -201,29 +201,32 @@ Track these weekly once analytics is set up:
 
 ---
 
-## Immediate Action Items (This Week)
+## Checklist
 
-1. **Ship analytics** — Plausible or PostHog. Can't measure growth without it
-2. **Ship share buttons** — On album pages and rooms. This is the #1 virality lever
-3. **Add sitemap.xml** — `app/sitemap.ts` in Next.js, submit to Google Search Console
-4. **Add JSON-LD structured data** — MusicAlbum schema on album pages
-5. **Create X/Twitter account** — Start posting Album of the Day manually while building automation
-6. **Join r/LetsTalkMusic** — Begin 4-week warmup period with genuine participation
+### Immediate Action Items (This Week)
 
-## Week 2-3 Actions
+- [ ] Ship analytics — Plausible or PostHog. Can't measure growth without it
+- [ ] Ship share buttons — On album pages and rooms. This is the #1 virality lever
+- [ ] Add sitemap.xml — `app/sitemap.ts` in Next.js, submit to Google Search Console
+- [ ] Add JSON-LD structured data — MusicAlbum schema on album pages
+- [x] Create X/Twitter account — @MusicMuseumApp
+- [x] Register custom domain — musicmuseum.app
+- [ ] Join r/LetsTalkMusic — Begin 4-week warmup period with genuine participation
 
-7. **Set up Buffer + n8n automation** for daily Album of the Day posts
-8. **Create Discord server** for early community
-9. **Submit to BetaList** to build waitlist
-10. **Start engaging with 5-10 music YouTubers/TikTokers** (warm-up before DM outreach)
-11. **Write first 3 editorial posts** ("Best [genre] albums of [decade]" format)
+### Week 2-3 Actions
 
-## Month 2 Actions
+- [ ] Set up Buffer + n8n automation for daily Album of the Day posts
+- [ ] Create Discord server for early community
+- [ ] Submit to BetaList to build waitlist
+- [ ] Start engaging with 5-10 music YouTubers/TikTokers (warm-up before DM outreach)
+- [ ] Write first 3 editorial posts ("Best [genre] albums of [decade]" format)
 
-12. **Launch on Product Hunt** (after BetaList waitlist is 200+)
-13. **DM outreach to music influencers** (warm contacts from week 2-3)
-14. **Email 3 music Substack writers** offering early access
-15. **Launch Heatseekers newsletter** (weekly cadence)
+### Month 2 Actions
+
+- [ ] Launch on Product Hunt (after BetaList waitlist is 200+)
+- [ ] DM outreach to music influencers (warm contacts from week 2-3)
+- [ ] Email 3 music Substack writers offering early access
+- [ ] Launch Heatseekers newsletter (weekly cadence)
 
 ---
 
