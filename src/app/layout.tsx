@@ -48,7 +48,12 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <SessionProvider>
-            <QueryProvider>{children}</QueryProvider>
+            <QueryProvider>
+              {children}
+              <footer className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
+                Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates.
+              </footer>
+            </QueryProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>
