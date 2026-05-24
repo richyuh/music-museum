@@ -235,6 +235,13 @@ Not a direct revenue feature, but the key retention driver that makes everything
 
 ---
 
+## TODO
+
+- [ ] **Automated X/Twitter posting** — Set up X API v2 (Free tier: 1,500 tweets/mo) to auto-post Album of the Day daily. Steps: (1) Create developer account at developer.x.com with @MusicMuseumApp, (2) Create Project + App, generate API Key, API Secret, Access Token, Access Token Secret, (3) Build a cron job (Vercel cron or GitHub Actions) that fetches Album of the Day and posts via `POST https://api.x.com/2/tweets` with OAuth 1.0a.
+- [ ] **Fill missing album covers** — 343 of 3,163 albums (~11%) have `placehold.co` URLs instead of real cover art (iTunes API returned no result during seed). Re-fetch these from iTunes with corrected queries, or fall back to MusicBrainz Cover Art Archive / Last.fm / Discogs as alternative sources.
+
+---
+
 ## Lessons Learned
 
 - **Spotify API rate limiting** — Sending ~3,500 requests in rapid succession (concurrency 10, 100ms batch delay) triggered an extended 429 ban lasting 30+ minutes. The ban is per **client ID**, so regenerating the client secret does not help. Free tier limits you to 1 app, so you can't create a fresh app to bypass it. Fix: use concurrency of 5, 500ms batch delay, and avoid bulk runs with broken queries that double request count via fallback retries. Also: `encodeURIComponent` encodes `:` to `%3A`, which breaks Spotify's `album:` and `artist:` field filter syntax — build the URL manually instead of using `URLSearchParams` or `encodeURIComponent` on the full query string.
