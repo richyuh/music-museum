@@ -127,6 +127,114 @@ Ranked by risk and impact to production readiness.
 
 ---
 
+## Revenue Strategy: Path to $2K MRR
+
+Based on competitive market research across Letterboxd, music affiliate economics, newsletter sponsorships, creator tools, social listening platforms, premium community models, AI curation products, music commerce, and the direct competitor landscape (RYM, AOTY, Record Club, Last.fm, Discogs).
+
+### Revenue Mix Target
+
+No single feature gets there alone at early-stage traffic. The realistic path is a hybrid:
+
+| Stream | Monthly target |
+|--------|---------------|
+| Premium memberships | $600–1,000 |
+| Newsletter sponsorships | $400–700 |
+| Affiliate commerce | $150–400 |
+| Artist exhibit pages | $200–500 |
+| **Total** | **$1,350–2,600** |
+
+### Priority #1: Premium Membership — $5/mo or $40/yr
+
+Letterboxd proved this model: ~$19M/yr revenue, 2-5% conversion on 17-21M users. The single feature that drives Pro conversion is **personalized stats** (their Wrapped-equivalent).
+
+**What goes behind the paywall:**
+- Taste profile & yearly listening stats (top genres, decades, discovery patterns)
+- Spotify/Last.fm import to bootstrap collection
+- Advanced collection management (custom lists, sorting, filtering)
+- Ad-free experience
+- Private listening rooms
+
+**Target:** 150-200 subscribers = $750-1,000/mo.
+
+**Competitive edge:** RYM charges for themes/charts. AOTY gives a badge. Record Club has a Supporter tier. None offer meaningful personalized stats.
+
+### Priority #2: Weekly "Heatseekers" Newsletter with Sponsorships
+
+Fastest time-to-revenue. Sponsors engage at just 1,000 subscribers with 40%+ open rates. Music audiences are high-intent; niche sponsors (audio brands, vinyl shops, festivals) pay $35-75 CPM.
+
+**Format:** Weekly email — 1 album deep-dive, 3 underground picks, 1 sponsor slot. Free tier drives platform traffic; paid tier ($5/mo) adds bonus content.
+
+**Revenue math at 2,500 subscribers:**
+- Sponsorships at 50% open rate, $40 CPM = ~$500/mo
+- 100 paid subscribers at $5/mo = ~$450/mo after platform cut
+- Total: ~$700-950/mo
+
+**Key context:** Ad-supported music editorial is dead. Pitchfork gutted (2024). Stereogum lost 70% of ad revenue to Google AI search. What survives is direct audience relationship + hybrid revenue (Ted Gioia's Honest Broker: 271K+ subscribers, 35% growth in 2025).
+
+### Priority #3: Affiliate Commerce Layer
+
+Zero marginal cost once implemented. Monetizes every Album Exhibit page passively.
+
+**Key insight: lead with gear, not just vinyl.** A turntable at $250 with 3-4% Amazon commission ($7.50-10) is worth 5x more per sale than a $30 vinyl at 5% ($1.50).
+
+**Integrations:**
+- Merchbar: 5% commission, $50+ AOV, 7-day cookie (most turnkey)
+- Amazon Associates: 5% on vinyl/CDs, 3-4% on electronics
+- Rough Trade: 3% per sale
+- StubHub tickets: 3-9% per sale
+
+**Revenue at 25K monthly visitors:** ~$175-400/mo.
+
+**Supporting data:** 23% of engaged music fans buy merch. Vinyl market hit $2.1B in 2024, growing 9% CAGR. The "reads reviews → buys vinyl" overlap is well-understood by labels.
+
+### Priority #4: Artist Album Exhibit Pages — $20-50/mo
+
+Gap between Linktree ($8-35/mo for a link list) and Bandzoogle ($7-25/mo for a full website). Album Exhibit fills the middle: richer than a link, cheaper than a website, culturally meaningful.
+
+**What artists get:**
+- Museum-quality album page with context, embedded streaming, visuals, reviews
+- Fan engagement data (visits, listens, saves)
+- "Submit to Heatseekers" for newsletter/platform featuring
+
+**Revenue:** 20-40 artists at $25/mo = $500-1,000/mo.
+
+**Sequencing note:** Chicken-and-egg problem. Artists pay for audience access, so this becomes viable after 10K+ monthly visitors. Launch as free beta for early artists, convert to paid once engagement data exists.
+
+### Priority #5: Listening Rooms (Retention Driver)
+
+Not a direct revenue feature, but the key retention driver that makes everything above convert. 64% of listeners say they miss "listening together." Every standalone social listening platform died (Turntable.fm, JQBX, Plug.dj) — licensing costs kill them. But as a **feature inside an existing platform**, it drives engagement → premium conversion.
+
+**Implementation:** Use Spotify/Apple Music playback (users BYO stream) to avoid licensing costs. The social layer (chat, reactions, DJ rotation) is the value add.
+
+**Revenue impact:** Private rooms gated behind Premium. Scheduled events drive newsletter growth. Artists can host release listening parties (exhibit page value).
+
+### What NOT to Prioritize Yet
+
+- **Generative Listening Worlds** — AI visualizers are maturing but consumer reception is mixed between "cool demo" and "use weekly." High build cost, unclear retention. Validate cheaply with one theme first.
+- **Display advertising** — At early scale, ads generate $50-100/mo and degrade the experience. Only consider after 100K+ monthly visitors with a premium partner (Playwire grew Letterboxd's ad revenue 490%).
+
+### Sequencing
+
+- **Month 1-2:** Affiliate links on every Album Exhibit (Merchbar, Amazon gear). Newsletter launch with weekly Heatseekers. Both generate revenue immediately.
+- **Month 3-4:** Premium membership with taste profiles and Spotify import. Letterboxd conversion engine kicks in.
+- **Month 5-6:** Artist exhibit pages in paid beta. Listening rooms as free feature for retention.
+- **Target:** $2K MRR by month 6-8.
+
+### Competitive Landscape Summary
+
+| Platform | Strengths | Weaknesses | Monetization |
+|----------|-----------|------------|-------------|
+| RateYourMusic | Deepest catalog, 1.3M users, 147M ratings | Frozen 2000s UI, no mobile, hostile to casuals | Optional subscriptions |
+| Album of the Year | Best critic-score aggregation | Thin social, minimal editorial voice | Ads + subscriber tier + affiliate |
+| Discogs | Definitive physical-release DB, $275M GMV | Collector-only, no discovery/social | 9% marketplace fees + ads |
+| Last.fm | Unmatched scrobbling data | Stagnant, feels abandoned | Pro at €4.99/mo |
+| Record Club | Clean UX, Letterboxd-for-music positioning | Early stage, small user base | Free + Supporter tier |
+| Musicboard | 462K downloads | Outages, user boycott in 2026 | Freemium |
+
+**Gap none fill well:** Editorial curation + community + design-forward UX in one place. Album-first discovery beyond just ratings. Monetization beyond ads/subscriptions.
+
+---
+
 ## Lessons Learned
 
 - **Spotify API rate limiting** — Sending ~3,500 requests in rapid succession (concurrency 10, 100ms batch delay) triggered an extended 429 ban lasting 30+ minutes. The ban is per **client ID**, so regenerating the client secret does not help. Free tier limits you to 1 app, so you can't create a fresh app to bypass it. Fix: use concurrency of 5, 500ms batch delay, and avoid bulk runs with broken queries that double request count via fallback retries. Also: `encodeURIComponent` encodes `:` to `%3A`, which breaks Spotify's `album:` and `artist:` field filter syntax — build the URL manually instead of using `URLSearchParams` or `encodeURIComponent` on the full query string.
