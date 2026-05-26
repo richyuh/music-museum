@@ -238,7 +238,8 @@ Not a direct revenue feature, but the key retention driver that makes everything
 ## TODO
 
 - [ ] **Automated X/Twitter posting** — Set up X API v2 (Free tier: 1,500 tweets/mo) to auto-post Album of the Day daily. Steps: (1) Create developer account at developer.x.com with @MusicMuseumApp, (2) Create Project + App, generate API Key, API Secret, Access Token, Access Token Secret, (3) Build a cron job (Vercel cron or GitHub Actions) that fetches Album of the Day and posts via `POST https://api.x.com/2/tweets` with OAuth 1.0a.
-- [ ] **Fill missing album covers** — 343 of 3,163 albums (~11%) have `placehold.co` URLs instead of real cover art (iTunes API returned no result during seed). Re-fetch these from iTunes with corrected queries, or fall back to MusicBrainz Cover Art Archive / Last.fm / Discogs as alternative sources.
+- [ ] **Fill missing album covers** — 155 of 3,173 albums (~4.9%) still have no cover art (141 lack an mbid, 14 have no CAA entry). CAA fallback was added in PR #30 and recovered 301 covers. Remaining options: match by title+artist instead of mbid, or try Discogs/Last.fm as additional sources.
+- [ ] **Audit cover art accuracy** — iTunes fuzzy search can return the wrong cover (e.g., Die Lit by Playboi Carti returned a black heart image instead of the iconic stage-dive photo). Unknown how many other albums are affected. Consider cross-checking iTunes results against CAA, or building a manual review flow for flagged covers.
 
 ---
 
