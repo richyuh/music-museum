@@ -13,6 +13,13 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function escapeString(s: string): string {
+  return s
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n");
+}
+
 async function fetchItunesCover(
   title: string,
   artist: string
@@ -131,19 +138,31 @@ async function main() {
       continue;
     }
 
-    const lineIdx = album.mbid
-      ? lines.findIndex((l) => l.includes(`"${album.mbid}"`))
-      : -1;
+    let lineIdx = -1;
+    if (album.mbid) {
+      lineIdx = lines.findIndex((l) => l.includes(`"${album.mbid}"`));
+    }
+    // If mbid matched a line that already has a cover after the mbid, try title+artist instead
+    if (lineIdx !== -1 && album.mbid && !lines[lineIdx].includes(`"${album.mbid}")`)) {
+      lineIdx = -1;
+    }
+    if (lineIdx === -1) {
+      const escapedTitle = escapeString(album.title);
+      const escapedArtist = escapeString(album.artistName);
+      lineIdx = lines.findIndex((l) => l.includes(`a("${escapedTitle}","${escapedArtist}"`));
+    }
 
     if (lineIdx === -1) {
       failed++;
       console.log(`  FAIL:   ${album.title} — ${album.artistName} (line not found)`);
     } else {
       const line = lines[lineIdx];
-      const newLine = line.replace(
-        `"${album.mbid}")`,
-        `"${album.mbid}", "${coverUrl}")`,
-      );
+      let newLine: string;
+      if (album.mbid && line.includes(`"${album.mbid}")`)) {
+        newLine = line.replace(`"${album.mbid}")`, `"${album.mbid}", "${coverUrl}")`);
+      } else {
+        newLine = line.replace(/"\),\s*$/, `", undefined, "${coverUrl}"),`);
+      }
       if (newLine !== line) {
         lines[lineIdx] = newLine;
         if (source === "iTunes") itunesCount++;
