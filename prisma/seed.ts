@@ -85,7 +85,38 @@ async function main() {
   }
   console.log(`  ✓ ${adjCount} adjacencies set`);
 
-  // 3. Upsert albums
+  // 3. Deduplicate albums — remove duplicates created by year/mbid mismatches in prior seeds.
+  //    For each (title, artistName) group with >1 row, keep the row with the most data and delete the rest.
+  console.log("Deduplicating albums...");
+  const dupes: Array<{ title: string; artist_name: string; cnt: bigint }> =
+    await prisma.$queryRaw`
+      SELECT title, artist_name, COUNT(*) as cnt
+      FROM albums
+      GROUP BY title, artist_name
+      HAVING COUNT(*) > 1
+    `;
+  let deduped = 0;
+  for (const dup of dupes) {
+    const rows = await prisma.album.findMany({
+      where: { title: dup.title, artistName: dup.artist_name },
+      orderBy: { id: "asc" },
+    });
+    const best = rows.reduce((a, b) => {
+      const scoreA = (a.mbid ? 2 : 0) + (a.coverUrl && !a.coverUrl.includes("placehold") ? 1 : 0);
+      const scoreB = (b.mbid ? 2 : 0) + (b.coverUrl && !b.coverUrl.includes("placehold") ? 1 : 0);
+      return scoreB > scoreA ? b : a;
+    });
+    const deleteIds = rows.filter((r) => r.id !== best.id).map((r) => r.id);
+    await prisma.album.deleteMany({ where: { id: { in: deleteIds } } });
+    deduped += deleteIds.length;
+  }
+  if (deduped > 0) {
+    console.log(`  ✓ Removed ${deduped} duplicate albums (${dupes.length} groups)`);
+  } else {
+    console.log("  ✓ No duplicates found");
+  }
+
+  // 4. Upsert albums
   console.log("Upserting albums...");
   const albumIdMap = new Map<number, number>(); // index -> db id
   let created = 0;
@@ -120,23 +151,12 @@ async function main() {
 
     let upserted;
 
-    if (a.mbid) {
-      // Upsert by mbid (unique)
-      upserted = await prisma.album.upsert({
-        where: { mbid: a.mbid },
-        update: {
-          coverUrl: albumData.coverUrl,
-          summary: albumData.summary,
-          impactScore: albumData.impactScore,
-          impactTier: albumData.impactTier,
-          linksJson: albumData.linksJson,
-          subgenresJson: albumData.subgenresJson,
-        },
-        create: albumData,
-      });
-    } else {
-      // Upsert by title + artistName + releaseYear (compound unique)
-      upserted = await prisma.album.upsert({
+    // Find existing record: by mbid first, then exact (title, artist, year), then (title, artist).
+    let existing = a.mbid
+      ? await prisma.album.findUnique({ where: { mbid: a.mbid } })
+      : null;
+    if (!existing) {
+      existing = await prisma.album.findUnique({
         where: {
           title_artistName_releaseYear: {
             title: a.title,
@@ -144,7 +164,27 @@ async function main() {
             releaseYear: a.releaseYear,
           },
         },
-        update: {
+      });
+    }
+    if (!existing) {
+      existing = await prisma.album.findFirst({
+        where: { title: a.title, artistName: a.artistName },
+      });
+    }
+
+    if (existing) {
+      // Clear mbid on any other row that holds this mbid to avoid unique constraint violation
+      if (a.mbid && existing.mbid !== a.mbid) {
+        await prisma.album.updateMany({
+          where: { mbid: a.mbid, id: { not: existing.id } },
+          data: { mbid: null },
+        });
+      }
+      upserted = await prisma.album.update({
+        where: { id: existing.id },
+        data: {
+          mbid: a.mbid || existing.mbid,
+          releaseYear: a.releaseYear,
           coverUrl: albumData.coverUrl,
           summary: albumData.summary,
           impactScore: albumData.impactScore,
@@ -152,8 +192,9 @@ async function main() {
           linksJson: albumData.linksJson,
           subgenresJson: albumData.subgenresJson,
         },
-        create: albumData,
       });
+    } else {
+      upserted = await prisma.album.create({ data: albumData });
     }
 
     // Track whether this was a create or update
@@ -183,7 +224,7 @@ async function main() {
   }
   console.log(`  ✓ ${albums.length} albums processed (${created} created, ${updated} updated)`);
 
-  // 4. Recreate hero albums (positional, may shift with new scoring)
+  // 5. Recreate hero albums (positional, may shift with new scoring)
   console.log("Setting hero albums...");
   await prisma.genreHeroAlbum.deleteMany();
   for (const [genreSlug, albumIndices] of Object.entries(genreHeroAlbums)) {
@@ -204,7 +245,7 @@ async function main() {
   }
   console.log("  ✓ Hero albums set");
 
-  // 5. Recreate canon albums
+  // 6. Recreate canon albums
   console.log("Setting canon albums...");
   await prisma.genreCanonAlbum.deleteMany();
   for (const [genreSlug, albumIndices] of Object.entries(genreCanonAlbums)) {
@@ -225,7 +266,7 @@ async function main() {
   }
   console.log("  ✓ Canon albums set");
 
-  // 6. Create GIN index for full-text search (idempotent)
+  // 7. Create GIN index for full-text search (idempotent)
   console.log("Ensuring full-text search index...");
   try {
     await prisma.$executeRawUnsafe(`
@@ -237,7 +278,7 @@ async function main() {
     console.warn("  ⚠ Full-text search index creation failed:", e);
   }
 
-  // 7. Upsert admin user (preserve existing password if no ADMIN_PASSWORD env)
+  // 8. Upsert admin user (preserve existing password if no ADMIN_PASSWORD env)
   console.log("Ensuring admin user...");
   const existingAdmin = await prisma.user.findUnique({
     where: { email: "admin@musicmuseum.com" },
